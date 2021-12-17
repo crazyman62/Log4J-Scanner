@@ -41,6 +41,7 @@ def web_server(host, port):
     global connection_flag
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((host, int(port)))
+        s.settimeout(None)
         s.listen()
         conn, addr = s.accept()
         with conn:
