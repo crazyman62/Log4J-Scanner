@@ -15,7 +15,6 @@ import webbrowser
 import socket
 import os
 from datetime import datetime
-from configparser import ConfigParser
 import subprocess, platform
 
 def log(string):
@@ -40,9 +39,10 @@ def web_server(host, port):
             s.listen()
             conn, addr = s.accept()
             with conn:
-                log('Connected by: ' + addr[0])
-                print('Connected by: ', addr[0])
-                connection_flag = 1
+                if addr[0] != host:
+                    log('Connected by: ' + addr[0])
+                    print('Connected by: ', addr[0])
+                    connection_flag = 1
                 while True:
                     data = conn.recv(1024)
                     if not data:
@@ -50,7 +50,6 @@ def web_server(host, port):
                     conn.sendall(data)
         time.sleep(900)
         s.close()
-
 
 def found(html, url):
     #webbrowser.open(url)
@@ -130,20 +129,12 @@ thread_out()
 while int(threading.active_count()) >= 3:
     os.system('cls' if os.name=='nt' else 'clear')
     print("Threads still running: " + str(threading.active_count()))
-    time.sleep(10)
-    print('.')
-    time.sleep(10)
-    print('.')
-    time.sleep(10)
-    print('.')
-    time.sleep(10)
-    print('.')
-    time.sleep(10)
-    print('.')
-    time.sleep(10)    
+    for y in range (1,10):
+        print('.')
+        time.sleep(10)
+    
 if connection_flag != 0:
     log('Conncation has been made, please see vulnerability')
 else:
     log('Connection logged, please see who connected.')
 print("Complete")
-
